@@ -45,3 +45,15 @@ claude plugin install codex@openai-codex --scope local
 Claude Code'u proje kökünden aç. `/codex:setup` yerel Codex oturumunu kontrol eder. Claude'un değişikliğini incelemek için testten sonra feature dalında `/codex:review --base main` çalıştır. Otomatik inceleme kapısını kapalı tut.
 
 Concord görevlerinin çalışma alanı Git deposunun köküdür. Üst klasörden veya ayrı bir worktree'den açılan oturumda `concord -C <proje-kökü> status` ile bu alanın kimliğini al ve Concord çağrılarında `workspace_id` olarak kullan. Projeyi aynı klasörden açan Claude Code ve Codex aynı NATIVE görevini görmeli.
+
+## İndirme tamamlanınca çalışma planı
+
+| Zaman | Sorumlu | İş ve kabul ölçütü |
+| --- | --- | --- |
+| İndirme sürerken | Codex | Temiz commit üzerinde `python harness.py` çalıştır. Beş test geçince çalışma kimliğini ve commit'i Concord'a kaydet. |
+| Tamamlandıktan sonraki ilk 15 dakika | Codex | İstemcinin seçili dosyalar için tamamlandı durumunu ve atlanan dosya olup olmadığını kontrol et. Yerelde dosya yollarını ve boyutlarını listele. Manifestteki çalıştırılabilir dosya yolunun mevcut olup olmadığını kaydet. |
+| Sonraki 15–60 dakika | Codex | Eksik veya tutarsız dosya varsa hangisi olduğunu raporla. Torrent parça doğrulaması gerekiyorsa süreyi disk hızına göre ayrıca ölç. Parça doğrulaması indirilen veriyi torrent tanımıyla karşılaştırır. Yayıncı kökenini doğrulamak için bağımsız bir imza veya güvenilir referans gerekir. |
+| İlk geliştirme turu | Codex ve Sonnet | Kendi küçük test projemizde geçerli ve eksik dosyaya işaret eden iki örnek manifest oluştur. Denetleyicinin birini kabul ettiğini, diğerinde eksik yolu bildirdiğini otomatik testle göster. Sonnet oturumu açıksa commit'i bağımsız incelesin. |
+| Karar ve devir | Codex | Çalıştırılabilir dosya eksikse paket için çalışma zamanı denemesini bloklu kaydet. Mevcutsa hedef platformu, kökeni ve yetkili test ortamını değerlendir. Her iki durumda da envanter ve test sonuçlarını ayrı kaydet. |
+
+Ham paket ve yerel envanter indirme makinesinde tutulur. Ortak Git deposuna kendi araçlarımız, sentetik örnekler ve tekrarlanabilir testler girer.
