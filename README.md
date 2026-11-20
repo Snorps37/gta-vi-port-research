@@ -7,19 +7,28 @@ Codex, Claude Code ve Concord için yerel bir deneme projesi. Örnek Python kodu
 ```powershell
 cd D:\gta6\ProjectNative
 python harness.py
-python harness.py --review both
+python harness.py --review claude
 python harness.py --show RUN_ID
+python harness.py --handoff RUN_ID
 ```
 
-İlk komut yerel testleri çalıştırır. İkinci komut, testler geçerse Codex ve Claude Code'a örneğin iki kaynak dosyasını ayrı ayrı gönderir. Tek model için `--review codex` veya `--review claude` kullan. Her denetim bir CLI çağrısıyla sınırlı ve zaman aşımı 90 saniye. Claude oturumu süresi dolduysa `claude auth login` ile yenile. Harness temel API anahtarı ve sağlayıcı ortam değişkenlerini alt süreçten çıkarır ve ücretli API'ye otomatik geçiş yapmaz. Abonelik kotası ve hesapta etkin ek kullanım, sağlayıcı tarafında yönetilir.
+İlk komut sadece yerel testleri çalıştırır. Model çağrıları testler geçince başlar. `--review codex` bağımsız Codex incelemesi, `--review claude` Sonnet incelemesi ister. `--review both` bu ikisini sırayla çağırır. Çözülmemiş tek bir teknik soru için ayrı bir `--escalate "Soru"` çağrısı Opus'u açar. Her sağlayıcı için çağrı başına 90 saniye sınır var. Claude oturumu süresi dolduysa `claude auth login` ile yenile. Harness temel API anahtarı ve sağlayıcı ortam değişkenlerini alt süreçten çıkarır ve ücretli API'ye otomatik geçiş yapmaz. Abonelik kotası ve hesapta etkin ek kullanım, sağlayıcı tarafında yönetilir.
 
 Terminaldeki çalışma kimliğiyle test çıktısını, model yanıtlarını ve süreç durumunu `--show` ile açabilirsin. Yerel SQLite dosyası `.native/runs.sqlite3`. Kesilen bir çalışma `running` olarak kalabilir. Yeni bir deneme ayrı kimlik alır. Model komutunun başarıyla çıkması yanıtın alındığını gösterir. Yanıttaki bulgular ayrıca değerlendirilir.
 
+`--handoff` temiz çalışma ağacında çalıştırılan test için commit SHA'sını ve adım durumlarını çıkarır. Bu özeti Concord kaydına ekle. SQLite yerel kaldığı için başka bir worktree'deki incelemeci aynı commit'te testi yeniden çalıştırır. Önceki çalışmalarda commit kaydı yoksa temiz commit'te tekrar test et.
+
 ## Codex, Claude Code ve Concord
 
-1. **Codex** uygulama görevini Concord'da `start_work` ile alır, dokunacağı dosyaları bildirir ve değişikliği üzerinde çalıştığı dalda test eder.
-2. **Concord** görevin sahibini, dosya çakışmalarını ve devri kaydeder. Codex test kimliğini ve commit SHA'sını görev kaydına ekler. Claude'a devir için `transfer_work` kullanılır.
-3. **Claude Code** interaktif oturumdan `inspect_work` ile görevi ve commit'i okur. İnceleme bulgularını Concord'a döner. Ayrı bir düzeltme görevi verilirse kendi Git worktree'sinde, dosyaları önceden kaydederek çalışır.
-4. **Python harness** yerel test ve otomatik inceleme çağrılarını sırayla yürütür. **SQLite** her komutun durumunu ve çıktısını tutar. Denemede Codex salt okunur çalışır, Claude'un araçları kapalıdır. Concord'daki iş devri interaktif Codex ve Claude oturumlarında yapılır.
+| Rol | Ne zaman kullanılır? | Teslim ettiği |
+| --- | --- | --- |
+| Codex | Küçük değişiklikler, testler ve entegrasyon | Commit, test sonucu, incelemeciye açık soru |
+| Claude Code / Sonnet | Codex değişikliğinin ilk bağımsız incelemesi | Dosya ve girdiyle yeniden üretilebilir bulgu |
+| Codex CLI | Bir Sonnet değişikliğinin bağımsız incelemesi veya Sonnet oturumu geçici olarak kapalıysa ek görüş | Kısa inceleme ve eksik test önerisi |
+| Claude Code / Opus | İki inceleme çeliştiğinde veya zor bir teknik karar kaldığında | Tek soruya gerekçeli karar ve doğrulama önerisi |
+| Concord | Dosya sahipliği, çakışma kontrolü, devir ve görev durumu | Görev kaydı, commit ve test kanıtı |
 
-Önce `python harness.py` ile yerel döngüyü doğrula. Rutin Claude incelemesi Sonnet kullanır. Opus'u çözümü belirsiz bir mimari karar veya iki inceleme arasında anlaşmazlık olduğunda interaktif oturumda çağır.
+1. Uygulayan agent `start_work` ile dosyaları üstlenir. Aynı anda ikinci bir agent yazacaksa kendi worktree'sini ve dosya kapsamını kullanır.
+2. Uygulayan agent commit'i oluşturur, temiz çalışma ağacında testi çalıştırır ve `--handoff RUN_ID` özetini Concord'a ekler. İncelemeci bağlıysa `transfer_work` ile devreder.
+3. İncelemeci `inspect_work` ile commit'i ve kabul ölçütünü okur, bulguları Concord'a kaydeder. CLI incelemesi örnek kaynakla sınırlıdır. Codex salt okunur çalışır. Claude araçları kapalıdır.
+4. Test başarısızsa önce yerelde düzelt. Bir model çağrısı erişim veya kota nedeniyle başarısızsa kayda geçir ve yerel testle devam et. Ayrı bir sağlayıcıya veya Opus'a geçiş açık bir çağrıyla yapılır.
