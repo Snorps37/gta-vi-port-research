@@ -83,3 +83,9 @@ Run `python -m unittest fixture.test_rpf -v` for synthetic examples covering goo
 Run `python -m fixture.directory_probe FILE TABLE_START TABLE_END --base 0 --unit 1 --stride 8` to test adjacent little-endian unsigned 32-bit offset and compressed-length fields in a known candidate metadata region. Offsets are relative to the supplied base in units of bytes times the unit argument. Lengths are in bytes. The probe tests four-byte-aligned field positions relative to the beginning of the region.
 
 For a match, two rows one stride apart must predict distinct ordered streams beyond that region, and both zlib end positions and checksums must agree. Exit code 1 means the chosen layout yielded no pair. The probe covers direct zlib records of up to 1 MiB and does not infer an archive directory or identify script bytecode. Run `python -m unittest fixture.test_directory_probe -v` for the synthetic positive and negative controls.
+
+### Choosing an independent RPF9 reference
+
+The upstream container parser reads the header and checks that its two metadata regions are in bounds and divisible into 16-byte slots. That check establishes where a table can fit. It gives no interpretation for the bytes in an individual slot. [Pinned container parser](https://github.com/offs/rpf9-extract/blob/46ca608975b749fc3e77a62435d46fdc115a97e0/src/container.rs)
+
+SixNG reports an encrypted table of contents and describes building its own index by scanning for compressed streams and grouping pages. If two readers both locate an entry through its payload, their agreement supports the stream boundary. A test of directory decoding needs an independently supplied name, stored offset and stored length, ideally from the packer that wrote a redistributable example. Reserve a second entry for verification after choosing the rule. [Pinned SixNG format notes](https://github.com/TrinitronClient/GTA6-Asset-Info/blob/5913fb08d65e20ded90e31402b521bf554c1513c/formats/01-rpf9.md)
