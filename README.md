@@ -6,6 +6,8 @@ Project NATIVE is a local test project for Codex, Claude Code, and Concord. The 
 
 The JavaScript launcher calls the Python fixture on Windows. The REA pilot records which dependencies a static reviewer recovered and which call needed a runtime check. The research plan tracks the steps from a synthetic manifest to a repeatable PC playability test. [Experiment, reproduction commands, and milestones](research/rea.md)
 
+Run `python demo/pc_scene.py` to move the square with the arrow keys. Run `python demo/pc_scene.py --smoke` to open the same window and test all four directions automatically. Both commands require Python with Tk and a graphical desktop.
+
 ![Elapsed time for 30 frames at four frame rates, computed by the fixture](docs/frame-timing.png)
 
 ## Run the harness
