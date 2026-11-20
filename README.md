@@ -77,3 +77,9 @@ Keep the raw package and local inventory on the download machine. Use the shared
 Run `python -m fixture.rpf FILE OFFSET` on a seekable file at a candidate 16-byte-aligned offset. The probe reports two half-open byte ranges when both zlib checksums pass and any intervening alignment bytes are zero. Each stream has a 1 MiB limit for both compressed and decoded sizes. The probe discards decoded bytes. Its output describes stream framing only; archive directory entries and asset types require separate evidence.
 
 Run `python -m unittest fixture.test_rpf -v` for synthetic examples covering good boundaries, incorrect offsets, damaged checksums, truncation, padding, and the expansion limit.
+
+## Test a directory hypothesis
+
+Run `python -m fixture.directory_probe FILE TABLE_START TABLE_END --base 0 --unit 1 --stride 8` to test adjacent little-endian unsigned 32-bit offset and compressed-length fields in a known candidate metadata region. Offsets are relative to the supplied base in units of bytes times the unit argument. Lengths are in bytes. The probe tests four-byte-aligned field positions relative to the beginning of the region.
+
+For a match, two rows one stride apart must predict distinct ordered streams beyond that region, and both zlib end positions and checksums must agree. Exit code 1 means the chosen layout yielded no pair. The probe covers direct zlib records of up to 1 MiB and does not infer an archive directory or identify script bytecode. Run `python -m unittest fixture.test_directory_probe -v` for the synthetic positive and negative controls.
