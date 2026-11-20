@@ -1,6 +1,6 @@
-# Project NATIVE
+# GTA VI Port Research
 
-Project NATIVE is a local test project for Codex, Claude Code, and Concord. The Python fixture converts a frame count into milliseconds. The harness uses only the Python standard library.
+Project NATIVE is an independent Xbox-to-PC research project. Start with the **[research handbook](research/handbook.md)** for a no-download walkthrough, tool directory and evidence standards. The **[first 72 hours playbook](research/first-72-hours.md)** covers executable intake, milestones, staffing and blockers.
 
 ## GTA VI research
 
@@ -27,7 +27,7 @@ Run `python demo/pc_scene.py` to move the square with the arrow keys. Run `pytho
 ## Run the harness
 
 ```powershell
-cd D:\gta6\ProjectNative
+# From the cloned repository root
 python harness.py
 python harness.py --review claude
 python harness.py --show RUN_ID
@@ -69,18 +69,6 @@ claude plugin install codex@openai-codex --scope local
 Start Claude Code from the project root. Run `/codex:setup` to check the local Codex session. To review a Claude change, run the tests on the feature branch, then run `/codex:review --base main`. Keep the automatic review gate disabled.
 
 The Git repository root is the Concord workspace for NATIVE tasks. If you start a session from the parent directory or a separate worktree, run `concord -C <project-root> status` to get the workspace ID and pass it as `workspace_id` in Concord calls. Claude Code and Codex should see the same NATIVE task when opened from the same project directory.
-
-## Plan for the incoming download
-
-| Timing | Owner | Work and acceptance criteria |
-| --- | --- | --- |
-| While the download is in progress | Codex | Run `python harness.py` from a clean commit. Once the fixture tests pass, record the run ID and commit in Concord. |
-| First 15 minutes after completion | Codex | Check the client's completion status for the selected files and identify any skipped files. List file paths and sizes locally. Record whether the executable exists at the path specified in the manifest. |
-| Next 15?60 minutes | Codex | Identify any missing or inconsistent files. If torrent piece verification is needed, measure its duration separately because it depends on disk speed. Piece verification checks the data against the torrent metadata. Verifying publisher provenance requires an independent signature or trusted reference. |
-| First development iteration | Codex and Sonnet | Create two sample manifests in the test project. Point one at an existing file and the other at a missing file. Add an automated test showing that the checker accepts the first and reports the missing path for the second. If Sonnet is available, have it review the commit independently. |
-| Decision and handoff | Codex | If the executable is missing, mark runtime testing of the package as blocked. If it exists, assess the target platform, provenance, and authorized test environment. Record the inventory and test results separately in either case. |
-
-Keep the raw package and local inventory on the download machine. Use the shared Git repository for project-authored tools, synthetic fixtures, and reproducible tests.
 
 ## Verify a compressed-stream boundary
 
