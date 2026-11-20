@@ -3,7 +3,7 @@ import random
 import unittest
 import zlib
 
-from fixture.rpf import LIMIT, adjacent_streams
+from fixture.rpf import LIMIT, PAGE, adjacent_streams, paged_extent
 
 
 def pair(first, second):
@@ -43,3 +43,15 @@ class StreamBoundaryTest(unittest.TestCase):
         data, _ = pair(bytes(LIMIT + 1), b"")
         with self.assertRaisesRegex(ValueError, "decoded"):
             adjacent_streams(io.BytesIO(data), 32)
+
+    def test_page_run_covers_padding_and_short_tail(self):
+        data, _ = pair(bytes(PAGE), b"tail")
+        self.assertEqual(paged_extent(io.BytesIO(data + b"unrelated"), 32),
+                         (len(data) - 32, PAGE + 4, 2))
+
+    def test_page_run_requires_a_valid_short_tail(self):
+        full, ranges = pair(bytes(PAGE), bytes(PAGE))
+        short, _ = pair(bytes(PAGE), b"tail")
+        for data in (full, short[:-1], short[:ranges[0][1]]):
+            with self.subTest(length=len(data)), self.assertRaises(ValueError):
+                paged_extent(io.BytesIO(data), 32)
