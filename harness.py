@@ -142,7 +142,7 @@ def main():
 
         run_id = uuid.uuid4().hex[:12]
         revision = clean_revision()
-        test = [sys.executable, "-m", "unittest", "-v", "fixture.test_units"]
+        test = [sys.executable, "-m", "unittest", "discover", "-s", "fixture", "-t", ".", "-v"]
         passed = run_step(db, run_id, "tests", test, timeout=15)
         if revision and clean_revision() == revision:
             with db:

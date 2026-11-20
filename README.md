@@ -2,6 +2,12 @@
 
 Project NATIVE is a local test project for Codex, Claude Code, and Concord. The Python fixture converts a frame count into milliseconds. The harness uses only the Python standard library.
 
+## Public research demo
+
+The JavaScript launcher calls the Python fixture on Windows. The REA pilot records which dependencies a static reviewer recovered and which call needed a runtime check. The research plan tracks the steps from a synthetic manifest to a repeatable PC playability test. [Experiment, reproduction commands, and milestones](research/rea.md)
+
+![Elapsed time for 30 frames at four frame rates, computed by the fixture](docs/frame-timing.png)
+
 ## Run the harness
 
 ```powershell
@@ -52,7 +58,7 @@ The Git repository root is the Concord workspace for NATIVE tasks. If you start 
 
 | Timing | Owner | Work and acceptance criteria |
 | --- | --- | --- |
-| While the download is in progress | Codex | Run `python harness.py` from a clean commit. Once all five tests pass, record the run ID and commit in Concord. |
+| While the download is in progress | Codex | Run `python harness.py` from a clean commit. Once the fixture tests pass, record the run ID and commit in Concord. |
 | First 15 minutes after completion | Codex | Check the client's completion status for the selected files and identify any skipped files. List file paths and sizes locally. Record whether the executable exists at the path specified in the manifest. |
 | Next 15?60 minutes | Codex | Identify any missing or inconsistent files. If torrent piece verification is needed, measure its duration separately because it depends on disk speed. Piece verification checks the data against the torrent metadata. Verifying publisher provenance requires an independent signature or trusted reference. |
 | First development iteration | Codex and Sonnet | Create two sample manifests in the test project. Point one at an existing file and the other at a missing file. Add an automated test showing that the checker accepts the first and reports the missing path for the second. If Sonnet is available, have it review the commit independently. |
