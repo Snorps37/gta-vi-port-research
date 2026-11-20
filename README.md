@@ -32,3 +32,16 @@ Terminaldeki çalışma kimliğiyle test çıktısını, model yanıtlarını ve
 2. Uygulayan agent commit'i oluşturur, temiz çalışma ağacında testi çalıştırır ve `--handoff RUN_ID` özetini Concord'a ekler. İncelemeci bağlıysa `transfer_work` ile devreder.
 3. İncelemeci `inspect_work` ile commit'i ve kabul ölçütünü okur, bulguları Concord'a kaydeder. CLI incelemesi örnek kaynakla sınırlıdır. Codex salt okunur çalışır. Claude araçları kapalıdır.
 4. Test başarısızsa önce yerelde düzelt. Bir model çağrısı erişim veya kota nedeniyle başarısızsa kayda geçir ve yerel testle devam et. Ayrı bir sağlayıcıya veya Opus'a geçiş açık bir çağrıyla yapılır.
+
+## Yerel Claude eklentisi ve Concord
+
+Proje klasöründe, OpenAI'ın resmî Codex eklentisini yerel kapsamda kur:
+
+```powershell
+claude plugin marketplace add openai/codex-plugin-cc --scope local
+claude plugin install codex@openai-codex --scope local
+```
+
+Claude Code'u proje kökünden aç. `/codex:setup` yerel Codex oturumunu kontrol eder. Claude'un değişikliğini incelemek için testten sonra feature dalında `/codex:review --base main` çalıştır. Otomatik inceleme kapısını kapalı tut.
+
+Concord görevlerinin çalışma alanı Git deposunun köküdür. Üst klasörden veya ayrı bir worktree'den açılan oturumda `concord -C <proje-kökü> status` ile bu alanın kimliğini al ve Concord çağrılarında `workspace_id` olarak kullan. Projeyi aynı klasörden açan Claude Code ve Codex aynı NATIVE görevini görmeli.
