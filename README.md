@@ -2,6 +2,10 @@
 
 Project NATIVE is a local test project for Codex, Claude Code, and Concord. The Python fixture converts a frame count into milliseconds. The harness uses only the Python standard library.
 
+## GTA VI research
+
+What would it take to run the Xbox Series version of **Grand Theft Auto VI (GTA 6)** on a Windows PC? The [illustrated research guide](research/xbox-to-pc.md) follows an Xbox launch, a resource read, and a rendered frame. Try the [read-only executable inspector](tools/inspect_pe.py) on Windows Notepad to reproduce the first step with Python alone. Game data stays local.
+
 ## Windows graphics baseline
 
 Microsoft's GDK desktop sample rendered its first Direct3D 12 frame on the test PC. [Build instructions and verified screenshot](demo/gdk/README.md)
