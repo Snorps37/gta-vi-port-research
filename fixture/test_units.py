@@ -13,6 +13,9 @@ class FramesToMillisecondsTest(unittest.TestCase):
     def test_zero_frames(self):
         self.assertEqual(frames_to_ms(0, 60), 0)
 
+    def test_positive_duration_below_one_millisecond(self):
+        self.assertEqual(frames_to_ms(1, 2000), 0)
+
     def test_invalid_inputs(self):
         for frames, fps in [(-1, 60), (1, 0), (1, -1)]:
             with self.subTest(frames=frames, fps=fps):
