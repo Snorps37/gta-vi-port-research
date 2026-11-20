@@ -2,6 +2,10 @@
 
 Project NATIVE is a local test project for Codex, Claude Code, and Concord. The Python fixture converts a frame count into milliseconds. The harness uses only the Python standard library.
 
+## Windows graphics baseline
+
+Microsoft's GDK desktop sample rendered its first Direct3D 12 frame on the test PC. [Build instructions and verified screenshot](demo/gdk/README.md)
+
 ## Public research demo
 
 The JavaScript launcher calls the Python fixture on Windows. The REA pilot records which dependencies a static reviewer recovered and which call needed a runtime check. The research plan tracks the steps from a synthetic manifest to a repeatable PC playability test. [Experiment, reproduction commands, and milestones](research/rea.md)

@@ -1,0 +1,21 @@
+diff --git a/Samples/IntroGraphics/SimpleTriangleDesktop/DeviceResources.cpp b/Samples/IntroGraphics/SimpleTriangleDesktop/DeviceResources.cpp
+index 357a36e..29e432f 100644
+--- a/Samples/IntroGraphics/SimpleTriangleDesktop/DeviceResources.cpp
++++ b/Samples/IntroGraphics/SimpleTriangleDesktop/DeviceResources.cpp
+@@ -6,0 +7,3 @@
++#include "ScreenGrab.h"
++#include <wincodec.h>
++#pragma comment(lib, "windowscodecs.lib")
+@@ -532,0 +536,12 @@ void DeviceResources::Present(D3D12_RESOURCE_STATES beforeState)
++    static bool firstFrame = true;
++    if (firstFrame)
++    {
++        firstFrame = false;
++        wchar_t output[32768];
++        const DWORD count = GetEnvironmentVariableW(L"NATIVE_FRAME_PNG", output, _countof(output));
++        if (count > 0 && count < _countof(output))
++        {
++            ThrowIfFailed(SaveWICTextureToFile(m_commandQueue.Get(), GetRenderTarget(),
++                GUID_ContainerFormatPng, output, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_PRESENT));
++        }
++    }
