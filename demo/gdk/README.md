@@ -2,6 +2,8 @@
 
 Microsoft's SimpleTriangleDesktop draws three colored vertices with Direct3D 12. Project NATIVE builds the pinned desktop sample and saves its first rendered back buffer as a PNG. [Upstream sample](https://github.com/microsoft/Xbox-GDK-Samples/tree/b1e77b6ac10f95b07296025fda171ca2ddc42dbe/Samples/IntroGraphics/SimpleTriangleDesktop)
 
+Microsoft publishes the sample under the [MIT license at the tested revision](https://github.com/microsoft/Xbox-GDK-Samples/blob/b1e77b6ac10f95b07296025fda171ca2ddc42dbe/LICENSE). The screenshot below shows the sample triangle rendered locally.
+
 ![First Direct3D 12 frame from SimpleTriangleDesktop on the test PC](../../docs/gdk-first-frame.png)
 
 ## Reproduce on Windows

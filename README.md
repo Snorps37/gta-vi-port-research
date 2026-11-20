@@ -4,7 +4,11 @@ Project NATIVE is a local test project for Codex, Claude Code, and Concord. The 
 
 ## GTA VI research
 
+Project NATIVE is an independent research project, unaffiliated with Rockstar Games, Take-Two Interactive, or Microsoft. Grand Theft Auto VI identifies the subject of the research. Xbox identifies the platform.
+
 What would it take to run the Xbox Series version of **Grand Theft Auto VI (GTA 6)** on a Windows PC? The [illustrated research guide](research/xbox-to-pc.md) follows an Xbox launch, a resource read, and a rendered frame. Try the [read-only executable inspector](tools/inspect_pe.py) on Windows Notepad to reproduce the first step with Python alone. Game data stays local.
+
+When contributing, share original tools, diagrams, and links to public documentation. Keep game files, extracted assets, game captures, keys, download links, and private analysis outputs out of commits, issues, and pull requests.
 
 ## Windows graphics baseline
 
