@@ -71,3 +71,9 @@ The Git repository root is the Concord workspace for NATIVE tasks. If you start 
 | Decision and handoff | Codex | If the executable is missing, mark runtime testing of the package as blocked. If it exists, assess the target platform, provenance, and authorized test environment. Record the inventory and test results separately in either case. |
 
 Keep the raw package and local inventory on the download machine. Use the shared Git repository for project-authored tools, synthetic fixtures, and reproducible tests.
+
+## Verify a compressed-stream boundary
+
+Run `python -m fixture.rpf FILE OFFSET` on a seekable file at a candidate 16-byte-aligned offset. The probe reports two half-open byte ranges when both zlib checksums pass and any intervening alignment bytes are zero. Each stream has a 1 MiB limit for both compressed and decoded sizes. The probe discards decoded bytes. Its output describes stream framing only; archive directory entries and asset types require separate evidence.
+
+Run `python -m unittest fixture.test_rpf -v` for synthetic examples covering good boundaries, incorrect offsets, damaged checksums, truncation, padding, and the expansion limit.
