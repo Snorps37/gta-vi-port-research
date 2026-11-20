@@ -7,15 +7,16 @@ import zlib
 LIMIT = 1024 * 1024
 CHUNK = 8192
 PAGE = 64 * 1024
+PACKED_PAGE_LIMIT = PAGE + 1024
 MAX_PAGES = 256
 
 
-def stream_extent(source, start, decoded_limit=LIMIT):
+def stream_extent(source, start, decoded_limit=LIMIT, compressed_limit=LIMIT):
     source.seek(start)
     decoder = zlib.decompressobj()
     consumed = produced = 0
-    while consumed < LIMIT:
-        block = source.read(min(CHUNK, LIMIT - consumed))
+    while consumed < compressed_limit:
+        block = source.read(min(CHUNK, compressed_limit - consumed))
         if not block:
             raise ValueError("incomplete zlib stream")
         try:
@@ -61,7 +62,8 @@ def paged_extent(source, start):
     check_start(start)
     at = start
     for count in range(1, MAX_PAGES + 1):
-        end, size = stream_extent(source, at, decoded_limit=PAGE)
+        end, size = stream_extent(source, at, decoded_limit=PAGE,
+                                  compressed_limit=PACKED_PAGE_LIMIT)
         if size < PAGE:
             return end - start, (count - 1) * PAGE + size, count
         if count < MAX_PAGES:

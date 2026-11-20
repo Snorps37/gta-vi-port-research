@@ -55,3 +55,11 @@ class StreamBoundaryTest(unittest.TestCase):
         for data in (full, short[:-1], short[:ranges[0][1]]):
             with self.subTest(length=len(data)), self.assertRaises(ValueError):
                 paged_extent(io.BytesIO(data), 32)
+
+    def test_page_run_rejects_excess_compressed_input(self):
+        short = zlib.compress(b"tail")
+        # Insert non-final empty stored blocks before the original deflate data.
+        stream = short[:2] + bytes.fromhex("000000ffff") * PAGE + short[2:]
+        self.assertEqual(zlib.decompress(stream), b"tail")
+        with self.assertRaisesRegex(ValueError, "compressed"):
+            paged_extent(io.BytesIO(stream), 0)
