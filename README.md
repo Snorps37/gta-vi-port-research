@@ -1,6 +1,8 @@
 # GTA VI Port Research
 
-A field guide and read-only Python toolkit for researchers investigating Grand Theft Auto VI on Xbox Series X|S. Use it to inventory a local package, inspect an executable's dependencies, and test where compressed archive records begin and end. The [data-type report](research/data-types.md) maps those records to research questions about the world, characters, missions, and media.
+**What can you recover from GTA VI's Xbox data, and how do you prove what you found?** Project NATIVE maps the path from stored bytes to a playable clip, an identified resource, or a testable claim about the game.
+
+**[Run a tool](#run-your-first-inspection)** · **[Find a file type](#data-map-at-a-glance)** · **[Explore related repos](research/tool-atlas.md)** · **[Pick an experiment](#ten-things-to-build-from-the-data)**
 
 ## Run your first inspection
 
@@ -11,6 +13,19 @@ python tools/inventory.py tools --sha256
 ```
 
 This reads the tools in your checkout and prints one JSON object per file with `path`, `bytes`, and `sha256`. Replace `tools` with the path to your own local package to produce the same inventory for that directory. Omit `--sha256` for a quick listing that reads file metadata. [Inventory source](tools/inventory.py)
+
+## From bytes to a finding
+
+```mermaid
+flowchart LR
+    A["Inventory files"] --> B["Verify a stored range"]
+    B --> C["Media stream"]
+    B --> D["Typed resource"]
+    C --> E["Decode and check frames or samples"]
+    D --> F["Resolve an ID in another file"]
+    E --> G["Movie reel or music library"]
+    F --> H["World atlas or mission graph"]
+```
 
 ## Data map at a glance
 
@@ -26,6 +41,23 @@ This reads the tools in your checkout and prints one JSON object per file with `
 | Movies, music and dialogue | Video container → frame index and audio tracks; audio event → bank → stream. A title or scene assignment needs an independent link to that media. | [Media inspection workflow](research/handbook.md#a-repeatable-media-check) · [Media research status](research/data-types.md#characters-stories-and-media) |
 
 The linked Python files are runnable tools. The reports document methods, public GTA V references, what Project NATIVE has demonstrated, and the evidence still needed. Build-specific inventories and extracted media stay local.
+
+## Ten things to build from the data
+
+The first two workflows have produced usable local media. For the remaining ideas, the final column is the test that would turn a promising match into a research result. Tool choices and their limits are in the [research tool atlas](research/tool-atlas.md).
+
+| # | What you could make | What would prove it works |
+|---:|---|---|
+| 1 | **A movie reel** from Bink clips, with alternate audio and transparency preserved | Compare source and MP4 frame counts, track IDs and timing; check a decoded color frame and alpha mask. |
+| 2 | **A music library** with playable tracks and a separate shelf for unnamed candidates | Join a structured title to a bank stream and verify the full decoded sample count. |
+| 3 | **An interior atlas** linking world placements to named rooms and buildings | Resolve a placement to an archetype, then verify its transform against an independent spatial reference. |
+| 4 | **A prop catalog** that counts models separately from placements | Trace two placed objects to the same drawable and verify its mesh, material and LOD. |
+| 5 | **A wardrobe browser** grouped by garment, slot and colorway | Resolve two variants to a common item and compatible body rig. Shop labels alone cannot identify garments. |
+| 6 | **A pedestrian schedule explorer** showing when and where a role is configured | Join a schedule to a spawn definition and a stable identity. Keep shared schedules visible. |
+| 7 | **A mission replay index** with a graph of evidenced choices | Link a replay ID to an event. Add a branch only when a condition and both successor states are verified. |
+| 8 | **An animation preview library** for characters and props | Bind a clip to the intended skeleton and check rest pose, joint order, root motion and duration. |
+| 9 | **A collision and navigation inspector** for one city block | Validate polygon bounds and adjacency, then compare a path and collision contact with a reference. |
+| 10 | **A shader coverage map** that shows which pipelines reuse the same program | Resolve pipeline indices to code ranges and validate one compute buffer or rendered draw on PC. |
 
 ## Inspect a Windows executable
 
