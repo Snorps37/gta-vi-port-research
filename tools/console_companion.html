@@ -1,0 +1,62 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GTA VI · Console field journal</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#111b20;color:#ecf0e9;font:16px/1.55 system-ui}main{max-width:820px;margin:auto;padding:34px 5vw 80px}h1{font-size:clamp(32px,7vw,56px);line-height:1.1;margin:.2em 0}h2{margin:.3em 0;color:#a5efd2}section{background:#19292e;padding:20px;margin:18px 0;border-radius:10px}label{display:block;margin:8px 0}input,select,button,textarea{font:inherit;color:inherit;background:#102027;border:1px solid #708b91;border-radius:4px;padding:7px;max-width:100%}textarea{width:100%;min-height:62px}select{width:100%}button{cursor:pointer}small,aside{color:#bdd0cf}li{margin:8px 0;overflow-wrap:anywhere}#status{color:#ffd689}a{color:#a5efd2}nav{display:flex;flex-wrap:wrap;gap:12px}
+</style><main><h1>Console field journal</h1><p>Keep this page beside your console. Your notes describe one playthrough. A replay entry can identify a checkpoint, but its unlock rule and story consequences are unknown.</p>
+<label><input id="reveal" type="checkbox"> Reveal catalog names and open journal (possible spoilers)</label><div id="status" role="status"></div>
+<div id="journal" hidden><nav><a href="#before">Checkpoint</a><a href="#choices">Choices</a><a href="#replays">Replays</a><a href="#places">Interiors</a><a href="#encounters">Encounters</a></nav>
+<section><label>Active mission for checkpoint, choice and replay tools<select id="mission"></select></label><small id="info"></small></section>
+<section id="before"><h2>Before you advance</h2><p>Write down what you want to finish or check before advancing this mission. Tick each item when done.</p><form id="addTask"><label>Reminder <input id="task" required maxlength="250"></label><button>Add reminder</button></form><ul id="tasks"></ul></section>
+<section id="choices"><h2>Compare two choices</h2><p>Record a save slot or checkpoint, the decision you took, and what you saw afterward. Repeat from the same starting state to compare.</p><label>Starting state<input id="start" maxlength="250"></label><label>Run A · decision and observed result<textarea id="runA"></textarea></label><label>Run B · decision and observed result<textarea id="runB"></textarea></label><small>Entries save as you type. Other differences between runs can affect the result.</small></section>
+<section id="replays"><h2>Replay tracker</h2><label>Status observed on your console<select id="replay"><option>Unchecked</option><option>Locked</option><option>Available</option><option>Completed</option></select></label><p id="progress"></p><label>Jump to an entry by recorded status<select id="jump"></select></label></section>
+<section id="places"><h2>Interior scout</h2><label>Choose a starting placement<select id="origin"></select></label><p>Five nearest other placements by straight-line distance in archive coordinate units. Accessibility and road routes need an in-game check.</p><div id="near"></div></section>
+<section id="encounters"><h2>Encounter log</h2><p>Search an internal schedule name or pack, then record where and when you saw a possible match. A schedule name gives you a lead. Only your observation supplies the time and place.</p><label>Search schedules<input id="query" type="search"></label><label>Matching schedules (first 50)<select id="schedule"></select></label><form id="addSighting"><label>In-game time, location and observed activity<input id="sighting" required maxlength="500"></label><button>Log observation</button></form><ul id="log"></ul></section>
+<button id="export">Download journal backup</button> <label>Restore journal backup <input type="file" id="restore" accept=".json"></label><small>Restore replaces the notes in this browser after confirmation. Back up before moving this page or clearing browser storage.</small></div></main>
+<script id="catalog" type="application/json">"CATALOG_PLACEHOLDER"</script><script>
+'use strict';
+const el=id=>document.getElementById(id), catalog=JSON.parse(el('catalog').textContent);
+const empty=()=>({version:1,notes:{},visited:{},sightings:[]});
+const key='native-console-journal-v1:'+location.pathname;
+let state=empty();
+function valid(s){
+ const dict=v=>v && typeof v==='object' && !Array.isArray(v);
+ return dict(s)&&s.version===1&&dict(s.notes)&&dict(s.visited)&&Object.values(s.visited).every(v=>typeof v==='boolean')&&
+ Object.entries(s.notes).every(([k,n])=>catalog.missions.some(m=>m[0]===k)&&dict(n)&&Array.isArray(n.tasks)&&n.tasks.every(t=>Array.isArray(t)&&typeof t[0]==='string'&&typeof t[1]==='boolean')&&['start','runA','runB','replay'].every(f=>typeof n[f]==='string'))&&
+ Array.isArray(s.sightings)&&s.sightings.every(a=>Array.isArray(a)&&a.length===2&&a.every(v=>typeof v==='string'));
+}
+function save(){try{localStorage.setItem(key,JSON.stringify(state));el('status').textContent='';}catch{el('status').textContent='Storage unavailable. Download a backup before closing.';}}
+function options(node,items){node.replaceChildren(...items.map(([value,text])=>new Option(text,value)));}
+const note=()=>state.notes[el('mission').value]??={tasks:[],start:'',runA:'',runB:'',replay:'Unchecked'};
+function draw(){
+ const n=note(), m=catalog.missions[el('mission').selectedIndex];
+ el('info').textContent=m[1]+(m[2]?' · Replay UI unlock evaluator found.':' · Replay catalog entry.');
+ for(const f of ['start','runA','runB','replay']) el(f).value=n[f];
+ el('tasks').replaceChildren(...n.tasks.map(t=>{const li=document.createElement('li'),l=document.createElement('label'),i=document.createElement('input');i.type='checkbox';i.checked=t[1];i.onchange=()=>{t[1]=i.checked;save();};l.append(i,' '+t[0]);li.append(l);return li;}));
+ const marked=catalog.missions.filter(m=>state.notes[m[0]]?.replay && state.notes[m[0]].replay!=='Unchecked');
+ el('progress').textContent=marked.length+' of '+catalog.missions.length+' replay entries checked.';
+ options(el('jump'),[['','Select recorded entry'],...marked.map(([id])=>[id,state.notes[id].replay+' · '+id]).sort((a,b)=>a[1].localeCompare(b[1]))]);
+}
+function nearby(){
+ const o=catalog.places[el('origin').selectedIndex];if(!o)return;
+ const others=catalog.places.filter(p=>p[0]!==o[0]).map(p=>[p,Math.hypot(p[2]-o[2],p[3]-o[3],p[4]-o[4])]).sort((a,b)=>a[1]-b[1]).slice(0,5);
+ el('near').replaceChildren(...[[o,0],...others].map(([p,d])=>{const l=document.createElement('label'),i=document.createElement('input');i.type='checkbox';i.checked=!!state.visited[p[0]];i.onchange=()=>{state.visited[p[0]]=i.checked;save();};l.append(i,' Visited · '+p[1]+' · '+(p===o?'start':d.toFixed(1)+' units')+' · XYZ '+p.slice(2).map(v=>v.toFixed(1)).join(', '));return l;}));
+}
+function schedules(){const q=el('query').value.trim().toLowerCase();options(el('schedule'),catalog.schedules.filter(r=>r.join(' ').toLowerCase().includes(q)).slice(0,50).map(([name,pack])=>[name+' · '+pack,name+' · '+pack]));}
+function log(){el('log').replaceChildren(...state.sightings.slice().reverse().map(([name,text])=>{const li=document.createElement('li');li.textContent=name+' — '+text;return li;}));}
+if(typeof catalog==='string'){el('reveal').disabled=true;el('status').textContent='Generate this page with console_companion.py and your local catalogs.';}
+else {
+ try{const raw=localStorage.getItem(key);if(raw){const s=JSON.parse(raw);if(!valid(s))throw Error();state=s;}}catch{el('status').textContent='Existing notes could not be loaded. Keep a journal backup.';}
+ options(el('mission'),catalog.missions.map(([id])=>[id,id]));
+ options(el('origin'),catalog.places.map(([id,name,x,y])=>[id,name+' · '+x.toFixed(0)+', '+y.toFixed(0)]));
+ el('reveal').onchange=()=>{el('journal').hidden=!el('reveal').checked;};
+ el('mission').onchange=draw;el('origin').onchange=nearby;el('query').oninput=schedules;
+ el('jump').onchange=()=>{if(el('jump').value){el('mission').value=el('jump').value;draw();}};
+ for(const f of ['start','runA','runB','replay']) el(f).oninput=()=>{note()[f]=el(f).value;save();if(f==='replay')draw();};
+ el('addTask').onsubmit=e=>{e.preventDefault();const t=el('task').value.trim();if(t){note().tasks.push([t,false]);el('task').value='';save();draw();}};
+ el('addSighting').onsubmit=e=>{e.preventDefault();const t=el('sighting').value.trim();if(t&&el('schedule').value){state.sightings.push([el('schedule').value,t]);el('sighting').value='';save();log();}};
+ el('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state)],{type:'application/json'}));a.download='console-journal.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+ el('restore').onchange=async()=>{try{const s=JSON.parse(await el('restore').files[0].text());if(!valid(s))throw Error();if(confirm('Replace current journal with this backup?')){state=s;save();draw();nearby();log();}}catch{el('status').textContent='Could not restore this journal. Check the backup and catalog.';}finally{el('restore').value='';}};
+ if(catalog.missions.length)draw();else el('journal').querySelectorAll('#before,#choices,#replays').forEach(n=>n.hidden=true);
+ nearby();schedules();log();
+}
+</script></html>

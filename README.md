@@ -8,6 +8,18 @@ For what the executable sections, shader tables and gameplay records can tell us
 
 ## Run your first inspection
 
+### Use the console companion
+
+Build a single offline page to use beside your console. It opens with catalog names hidden. Choose a replay entry to make a **before-you-advance checklist**, **compare two decisions** from a recorded starting state, or **track replay availability** as it appears on your console. The **interior scout** ranks nearby placements by straight-line distance. The **encounter log** pairs a schedule lead with the time, place and activity you observed.
+
+```powershell
+python tools/console_companion.py path/to/people/evidence.json path/to/world/interiors.csv path/to/private/console-companion.html
+```
+
+Open the generated HTML on your companion device. The builder expects the local people workbench's mission and schedule groups and the world inspector's interior CSV. Notes live in that browser. Use **Download journal backup** to move them to another device, then restore against the same catalogs. Replay catalog keys identify entries. Verifying a choice consequence requires observed outcomes from comparable saves. [Builder](tools/console_companion.py) · [Offline interface](tools/console_companion.html)
+
+### Inspect files
+
 From the repository root, with Python 3.9 or later:
 
 ```powershell
