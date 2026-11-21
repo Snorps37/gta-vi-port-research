@@ -8,5 +8,4 @@
 - Use a separate Git worktree for a second editing agent. The reviewer works from the producer's commit.
 - Treat model reports as review evidence and test exit codes as test evidence.
 - Use Sonnet for the first review of Codex work and Codex for the first review of Claude work. Escalate a focused unresolved question to Opus only after collecting the local evidence.
-
-- After each research finding, update the local research plan before starting the next experiment. Record what was tested, the result (including negative or inconclusive results), a local evidence link, and the resulting next action or blocker. Revise any earlier conclusion the finding supersedes. Edit the plan template and refresh the rendered plan together. Keep package-specific evidence off GitHub.
+- After each research finding, update the local research plan before starting the next experiment. Record what was tested, the result (including negative or inconclusive results), a local evidence link, and the resulting next action or blocker. Revise any earlier conclusion the finding supersedes. In the local research workbench, edit `research-plan/viewer.html` and refresh `research-plan/index.html` with the same finding. For changes to measured totals, run `research-plan/build.py <package-directory> <location-join.py>` and verify the rendered result. Keep package-specific evidence off GitHub.
