@@ -3,6 +3,7 @@ import argparse
 import csv
 import json
 from pathlib import Path
+from urllib.parse import quote
 
 
 def build(people, interiors, output, activities=None):
@@ -40,6 +41,19 @@ def build(people, interiors, output, activities=None):
                 if not isinstance(record["displayName"], str) or not record["displayName"].strip():
                     raise ValueError("Activity displayName must be nonempty text")
                 activity["displayName"] = record["displayName"]
+            if "evidencePage" in record:
+                raw = record["evidencePage"]
+                if not isinstance(raw, str):
+                    raise ValueError("Activity evidencePage must be a local HTML path")
+                path, _, fragment = raw.partition("#")
+                if Path(path).anchor or ".." in Path(path).parts or ":" in path or "\\" in path:
+                    raise ValueError("Activity evidencePage must be relative to the output folder")
+                page = (output.parent / path).resolve()
+                if (not page.is_relative_to(output.parent.resolve())
+                        or page.suffix.lower() != ".html" or not page.is_file()):
+                    raise ValueError("Activity evidencePage must name an HTML file under the output folder")
+                relative = page.relative_to(output.parent.resolve()).as_posix()
+                activity["evidencePage"] = quote(relative) + ("#" + quote(fragment, safe="") if fragment else "")
             for field in ("details", "objectives"):
                 values = record.get(field, {})
                 if not isinstance(values, dict) or not all(

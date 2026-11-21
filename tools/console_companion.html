@@ -60,7 +60,7 @@ function drawActivities(){
    };
    label.append(check,' '+(row.displayName||row.name)+' · '+row.classification);
    evidence.textContent=row.evidence;item.append(label,evidence);
-   if(row.details||row.objectives){
+   if(row.details||row.objectives||row.evidencePage){
      const panel=document.createElement('details'),summary=document.createElement('summary');
      summary.textContent='Controls, rules, unlock evidence and objectives';panel.append(summary);
      for(const [title,body] of Object.entries(row.details||{})){
@@ -78,6 +78,10 @@ function drawActivities(){
          };
          line.append(box,' '+text);panel.append(line);
        }
+     }
+     if(row.evidencePage){
+       const link=document.createElement('a');link.href=row.evidencePage;
+       link.textContent='View source records and artwork';panel.append(link);
      }
      item.append(panel);
    }
