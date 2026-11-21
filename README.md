@@ -16,6 +16,8 @@ Build a single offline page to use beside your console. It opens with catalog na
 python tools/console_companion.py path/to/people/evidence.json path/to/world/interiors.csv path/to/private/console-companion.html
 ```
 
+To add the **minigame checklist**, pass `--activities path/to/activities/companion.json`. This optional local JSON array supplies a display name, classification and evidence summary for each entry (fields `name`, `classification`, and `evidence`). Players can mark personal sightings and carry them over in a journal backup.
+
 Open the generated HTML on your companion device. The builder expects the local people workbench's mission and schedule groups and the world inspector's interior CSV. Notes live in that browser. Use **Download journal backup** to move them to another device, then restore against the same catalogs. Replay catalog keys identify entries. Verifying a choice consequence requires observed outcomes from comparable saves. [Builder](tools/console_companion.py) · [Offline interface](tools/console_companion.html)
 
 ### Inspect files
