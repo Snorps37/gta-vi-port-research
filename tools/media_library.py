@@ -1,6 +1,7 @@
 """Build a searchable offline library from local video and audio inventories."""
 import argparse
 import csv
+import math
 from html import escape
 from pathlib import Path
 
@@ -8,7 +9,15 @@ from pathlib import Path
 def entries(index, root, kind, delimiter):
     root = root.resolve()
     with index.open(encoding="utf-8-sig", newline="") as source:
-        for row in csv.DictReader(source, delimiter=delimiter):
+        reader = csv.DictReader(source, delimiter=delimiter)
+        required = {"file", "duration_seconds"} | (
+            {"archive", "width", "height"} if kind == "Video" else {"channels", "rate"}
+        )
+        if not required.issubset(reader.fieldnames or []):
+            raise ValueError(f"{index}: missing required columns")
+        for row in reader:
+            if not all(row[key] and row[key].strip() for key in required):
+                raise ValueError(f"{index}, line {reader.line_num}: missing required value")
             media = (root / row["file"]).resolve()
             if not media.is_relative_to(root) or not media.is_file():
                 raise ValueError(f"missing or out-of-root media: {row['file']}")
@@ -18,7 +27,13 @@ def entries(index, root, kind, delimiter):
             else:
                 title = row.get("name") or media.stem
                 detail = f"{row['channels']} channels · {row['rate']} Hz"
-            duration = round(float(row["duration_seconds"]))
+            try:
+                seconds = float(row["duration_seconds"])
+                if not math.isfinite(seconds) or seconds < 0:
+                    raise ValueError
+            except ValueError as exc:
+                raise ValueError(f"{index}, line {reader.line_num}: invalid duration") from exc
+            duration = round(seconds)
             yield kind, title, detail, f"{duration // 60}:{duration % 60:02}", media.as_uri()
 
 
