@@ -24,6 +24,7 @@ function valid(s){
  return dict(s)&&s.version===1&&dict(s.notes)&&dict(s.visited)&&Object.values(s.visited).every(v=>typeof v==='boolean')&&
  Object.entries(s.notes).every(([k,n])=>dict(n)&&['Unchecked','Locked','Available','Completed'].includes(n.replay)&&Array.isArray(n.tasks)&&n.tasks.every(t=>Array.isArray(t)&&typeof t[0]==='string'&&typeof t[1]==='boolean')&&['start','runA','runB','replay'].every(f=>typeof n[f]==='string'))&&
  (s.seenActivities===undefined||(Array.isArray(s.seenActivities)&&s.seenActivities.every(v=>typeof v==='string')))&&
+ (s.completedObjectives===undefined||(Array.isArray(s.completedObjectives)&&s.completedObjectives.every(v=>typeof v==='string')))&&
  Array.isArray(s.sightings)&&s.sightings.every(a=>Array.isArray(a)&&a.length===2&&a.every(v=>typeof v==='string'));
 }
 function save(){try{if(localStorage.getItem(key)!==lastStored){el('status').textContent='Stored notes changed or could not be loaded. Export your edits before reloading.';return;}const next=JSON.stringify(state);localStorage.setItem(key,next);lastStored=next;el('status').textContent='';}catch{el('status').textContent='Storage unavailable. Download a backup before closing.';}}
@@ -48,6 +49,7 @@ function drawActivities(){
  const rows=catalog.activities||[];
  el('activities').hidden=el('activityLink').hidden=rows.length===0;
  const seen=new Set(state.seenActivities||[]);
+ const completed=new Set(state.completedObjectives||[]);
  el('activityList').replaceChildren(...rows.map(row=>{
    const item=document.createElement('article'), label=document.createElement('label');
    const check=document.createElement('input'), evidence=document.createElement('p');
@@ -56,8 +58,30 @@ function drawActivities(){
      if(check.checked)seen.add(row.name);else seen.delete(row.name);
      state.seenActivities=[...seen];save();
    };
-   label.append(check,' '+row.name+' · '+row.classification);
-   evidence.textContent=row.evidence;item.append(label,evidence);return item;
+   label.append(check,' '+(row.displayName||row.name)+' · '+row.classification);
+   evidence.textContent=row.evidence;item.append(label,evidence);
+   if(row.details||row.objectives){
+     const panel=document.createElement('details'),summary=document.createElement('summary');
+     summary.textContent='Controls, rules, unlock evidence and objectives';panel.append(summary);
+     for(const [title,body] of Object.entries(row.details||{})){
+       const heading=document.createElement('h3'),description=document.createElement('p');
+       heading.textContent=title;description.textContent=body;panel.append(heading,description);
+     }
+     if(row.objectives){
+       const heading=document.createElement('h3');heading.textContent='Objectives I completed on console';panel.append(heading);
+       for(const [id,text] of Object.entries(row.objectives)){
+         const token=JSON.stringify([row.name,id]),box=document.createElement('input'),line=document.createElement('label');
+         box.type='checkbox';box.checked=completed.has(token);
+         box.onchange=()=>{
+           if(box.checked)completed.add(token);else completed.delete(token);
+           state.completedObjectives=[...completed];save();
+         };
+         line.append(box,' '+text);panel.append(line);
+       }
+     }
+     item.append(panel);
+   }
+   return item;
  }));
 }
 function log(){el('log').replaceChildren(...state.sightings.slice().reverse().map(([name,text])=>{const li=document.createElement('li');li.textContent=name+' — '+text;return li;}));}

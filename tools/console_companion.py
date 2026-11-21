@@ -35,7 +35,21 @@ def build(people, interiors, output, activities=None):
                 for k in ("name", "classification", "evidence")
             ):
                 raise ValueError("Each activity needs a name, classification and evidence")
-            activity_rows.append({k: record[k] for k in ("name", "classification", "evidence")})
+            activity = {k: record[k] for k in ("name", "classification", "evidence")}
+            if "displayName" in record:
+                if not isinstance(record["displayName"], str) or not record["displayName"].strip():
+                    raise ValueError("Activity displayName must be nonempty text")
+                activity["displayName"] = record["displayName"]
+            for field in ("details", "objectives"):
+                values = record.get(field, {})
+                if not isinstance(values, dict) or not all(
+                    key.strip() and isinstance(value, str) and value.strip()
+                    for key, value in values.items()
+                ):
+                    raise ValueError(f"Activity {field} must map nonempty keys to text")
+                if values:
+                    activity[field] = values
+            activity_rows.append(activity)
         if len({r["name"] for r in activity_rows}) != len(activity_rows):
             raise ValueError("Activity names must be unique")
     if output.resolve() in {p.resolve() for p in inputs}:
