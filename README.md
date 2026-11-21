@@ -4,6 +4,8 @@
 
 **[Run a tool](#run-your-first-inspection)** · **[Find a file type](#data-map-at-a-glance)** · **[Explore related repos](research/tool-atlas.md)** · **[Pick an experiment](#ten-things-to-build-from-the-data)**
 
+For what the executable sections, shader tables and gameplay records can tell us about the engine, read the [engine evidence assessment](research/engine-evidence.md). It also documents the [offline media browser](tools/media_library.py) for existing video and audio inventories.
+
 ## Run your first inspection
 
 From the repository root, with Python 3.9 or later:
