@@ -18,6 +18,9 @@ def build(people, interiors, output):
              *[float(r[axis]) for axis in "xyz"]]
             for r in csv.DictReader(source)
         ]
+    for rows in (missions, places):
+        if len(rows) != len({row[0] for row in rows}):
+            raise ValueError("Catalog identifiers must be unique")
     template = Path(__file__).with_suffix(".html")
     if output.resolve() in {p.resolve() for p in (template, people, interiors)}:
         raise ValueError("Choose a separate output file")

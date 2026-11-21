@@ -17,14 +17,14 @@
 const el=id=>document.getElementById(id), catalog=JSON.parse(el('catalog').textContent);
 const empty=()=>({version:1,notes:{},visited:{},sightings:[]});
 const key='native-console-journal-v1:'+location.pathname;
-let state=empty();
+let state=empty(), lastStored=null;
 function valid(s){
  const dict=v=>v && typeof v==='object' && !Array.isArray(v);
  return dict(s)&&s.version===1&&dict(s.notes)&&dict(s.visited)&&Object.values(s.visited).every(v=>typeof v==='boolean')&&
- Object.entries(s.notes).every(([k,n])=>catalog.missions.some(m=>m[0]===k)&&dict(n)&&Array.isArray(n.tasks)&&n.tasks.every(t=>Array.isArray(t)&&typeof t[0]==='string'&&typeof t[1]==='boolean')&&['start','runA','runB','replay'].every(f=>typeof n[f]==='string'))&&
+ Object.entries(s.notes).every(([k,n])=>dict(n)&&['Unchecked','Locked','Available','Completed'].includes(n.replay)&&Array.isArray(n.tasks)&&n.tasks.every(t=>Array.isArray(t)&&typeof t[0]==='string'&&typeof t[1]==='boolean')&&['start','runA','runB','replay'].every(f=>typeof n[f]==='string'))&&
  Array.isArray(s.sightings)&&s.sightings.every(a=>Array.isArray(a)&&a.length===2&&a.every(v=>typeof v==='string'));
 }
-function save(){try{localStorage.setItem(key,JSON.stringify(state));el('status').textContent='';}catch{el('status').textContent='Storage unavailable. Download a backup before closing.';}}
+function save(){try{if(localStorage.getItem(key)!==lastStored){el('status').textContent='Stored notes changed or could not be loaded. Export your edits before reloading.';return;}const next=JSON.stringify(state);localStorage.setItem(key,next);lastStored=next;el('status').textContent='';}catch{el('status').textContent='Storage unavailable. Download a backup before closing.';}}
 function options(node,items){node.replaceChildren(...items.map(([value,text])=>new Option(text,value)));}
 const note=()=>state.notes[el('mission').value]??={tasks:[],start:'',runA:'',runB:'',replay:'Unchecked'};
 function draw(){
@@ -41,11 +41,11 @@ function nearby(){
  const others=catalog.places.filter(p=>p[0]!==o[0]).map(p=>[p,Math.hypot(p[2]-o[2],p[3]-o[3],p[4]-o[4])]).sort((a,b)=>a[1]-b[1]).slice(0,5);
  el('near').replaceChildren(...[[o,0],...others].map(([p,d])=>{const l=document.createElement('label'),i=document.createElement('input');i.type='checkbox';i.checked=!!state.visited[p[0]];i.onchange=()=>{state.visited[p[0]]=i.checked;save();};l.append(i,' Visited · '+p[1]+' · '+(p===o?'start':d.toFixed(1)+' units')+' · XYZ '+p.slice(2).map(v=>v.toFixed(1)).join(', '));return l;}));
 }
-function schedules(){const q=el('query').value.trim().toLowerCase();options(el('schedule'),catalog.schedules.filter(r=>r.join(' ').toLowerCase().includes(q)).slice(0,50).map(([name,pack])=>[name+' · '+pack,name+' · '+pack]));}
+function schedules(){const q=el('query').value.trim().toLowerCase();options(el('schedule'),catalog.schedules.filter(r=>r.join(' ').toLowerCase().includes(q)).slice(0,50).map(([name,pack])=>[name+' · '+pack,name+' · '+pack]));el('addSighting').querySelector('button').disabled=!el('schedule').options.length;}
 function log(){el('log').replaceChildren(...state.sightings.slice().reverse().map(([name,text])=>{const li=document.createElement('li');li.textContent=name+' — '+text;return li;}));}
 if(typeof catalog==='string'){el('reveal').disabled=true;el('status').textContent='Generate this page with console_companion.py and your local catalogs.';}
 else {
- try{const raw=localStorage.getItem(key);if(raw){const s=JSON.parse(raw);if(!valid(s))throw Error();state=s;}}catch{el('status').textContent='Existing notes could not be loaded. Keep a journal backup.';}
+ try{const raw=localStorage.getItem(key);if(raw){const s=JSON.parse(raw);if(!valid(s))throw Error();state=s;lastStored=raw;}}catch{el('status').textContent='Existing notes could not be loaded. Keep a journal backup.';}
  options(el('mission'),catalog.missions.map(([id])=>[id,id]));
  options(el('origin'),catalog.places.map(([id,name,x,y])=>[id,name+' · '+x.toFixed(0)+', '+y.toFixed(0)]));
  el('reveal').onchange=()=>{el('journal').hidden=!el('reveal').checked;};
@@ -55,7 +55,7 @@ else {
  el('addTask').onsubmit=e=>{e.preventDefault();const t=el('task').value.trim();if(t){note().tasks.push([t,false]);el('task').value='';save();draw();}};
  el('addSighting').onsubmit=e=>{e.preventDefault();const t=el('sighting').value.trim();if(t&&el('schedule').value){state.sightings.push([el('schedule').value,t]);el('sighting').value='';save();log();}};
  el('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state)],{type:'application/json'}));a.download='console-journal.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
- el('restore').onchange=async()=>{try{const s=JSON.parse(await el('restore').files[0].text());if(!valid(s))throw Error();if(confirm('Replace current journal with this backup?')){state=s;save();draw();nearby();log();}}catch{el('status').textContent='Could not restore this journal. Check the backup and catalog.';}finally{el('restore').value='';}};
+ el('restore').onchange=async()=>{try{const s=JSON.parse(await el('restore').files[0].text());if(!valid(s))throw Error();if(confirm('Replace current journal with this backup?')){try{lastStored=localStorage.getItem(key);}catch{}state=s;save();draw();nearby();log();}}catch{el('status').textContent='Could not restore this journal. Check the backup and catalog.';}finally{el('restore').value='';}};
  if(catalog.missions.length)draw();else el('journal').querySelectorAll('#before,#choices,#replays').forEach(n=>n.hidden=true);
  nearby();schedules();log();
 }
